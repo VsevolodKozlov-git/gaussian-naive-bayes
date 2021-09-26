@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from gaussian_naive_bayes import *
 
@@ -156,8 +157,9 @@ class MyTestCase(unittest.TestCase):
         ], columns=['a', 'b', 'c'])
 
         labels = predict_labels_from_likelihoods(likelihoods)
-        expected_labels = pd.Series(['b', 'a', 'c'])
-        self.assertTrue(labels.equals(expected_labels))
+        expected_labels = np.array(['b', 'a', 'c'])
+
+        self.assertTrue(np.array_equal(labels, expected_labels))
 
     def test_predict(self):
         # choose values of x0 and x1 to have labels 0 and corresponding
@@ -166,11 +168,29 @@ class MyTestCase(unittest.TestCase):
         x1 = statistic[1].loc[:, 'mean']
         X = np.vstack([x0, x1])
 
-        predicted = predict(X, statistic)
-        exprected_predictions = pd.Series([0, 1])
-        self.assertTrue(exprected_predictions.equals(predicted))
+        predictions = predict(X, statistic)
+        expected_predictions = np.array([0, 1])
+
+        self.assertTrue(np.array_equal(predictions, expected_predictions))
+
     # todo test that predictions on titanic dataset don't cause any errors
     def test_predict_with_titanic(self):
-        pass
+        # prepare df
+        df = pd.read_csv('titanic.csv')
+        df.drop(labels=['Ticket', 'Cabin', 'Name', 'PassengerId'],
+                axis=1, inplace=True)
+        df.dropna(inplace=True)
+        df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
+        # prepare X and y
+        X = df.drop(labels='Survived', axis=1).to_numpy()
+        y = df['Survived'].to_numpy()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
+        statistic = get_labels_statistic(X_train, y_train)
+
+        predicted_labels = predict(X_test, statistic)
+        accuracy = np.sum(predicted_labels == y_test) / y_test.size
+        print(accuracy)
+        self.assertGreater(accuracy, 0.6)
+
 if __name__ == '__main__':
     unittest.main()

@@ -78,7 +78,7 @@ def predict_likelihood(X: np.array, labels_statistic: dict):
 
 
 def predict_labels_from_likelihoods(likelihoods):
-    return likelihoods.idxmax(axis=1)
+    return np.array(likelihoods.idxmax(axis=1))
 
 
 def predict(X, labels_statistic):
