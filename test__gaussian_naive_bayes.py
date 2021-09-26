@@ -120,7 +120,7 @@ class MyTestCase(unittest.TestCase):
         n_features = get_n_features_of_labels_statistic(stat)
         self.assertEqual(2, n_features)
 
-    def test_predict_likelihood_for_2d(self):
+    def test_predict_likelihood(self):
         """
         test normal use cases with just splitting array
          and counting all manually
@@ -131,7 +131,7 @@ class MyTestCase(unittest.TestCase):
 
         X_2d = np.vstack([X_1d_0, X_1d_1])
 
-        likelihood_2d = predict_likelihood_for_2d(X_2d, statistic)
+        likelihood_2d = predict_likelihood(X_2d, statistic)
 
         likelihood_1d_0 = predict_likelihood_for_1d(X_1d_0, statistic)
         likelihood_1d_1 = predict_likelihood_for_1d(X_1d_1, statistic)
@@ -139,8 +139,38 @@ class MyTestCase(unittest.TestCase):
                                           likelihood_1d_1])
         self.assertTrue(likelihood_2d.equals(likelihood_merged))
 
-    def test_predict_labels_from_likelihoods(self):
-        pass
+    def test_predict_likelihood__with_1d_case(self):
+        statistic = get_labels_statistic(self.X_merged, self.y)
+        X_1d = np.array([1, 2, 3])
+        pred_of_1d_func = predict_likelihood_for_1d(X_1d, statistic)
+        df_1d_func = pd.DataFrame(pred_of_1d_func, index=[0])
+        pred_of_general_func = predict_likelihood(X_1d, statistic)
+        vals_equals = pred_of_general_func.equals(df_1d_func)
+        self.assertTrue(vals_equals)
 
+    def test_predict_labels_from_likelihoods(self):
+        likelihoods = pd.DataFrame([
+              [0, 1, 0],
+              [1, 0, 0],
+              [0, 0, 1]
+        ], columns=['a', 'b', 'c'])
+
+        labels = predict_labels_from_likelihoods(likelihoods)
+        expected_labels = pd.Series(['b', 'a', 'c'])
+        self.assertTrue(labels.equals(expected_labels))
+
+    def test_predict(self):
+        # choose values of x0 and x1 to have labels 0 and corresponding
+        statistic = get_labels_statistic(self.X_merged, self.y)
+        x0 = statistic[0].loc[:, 'mean']
+        x1 = statistic[1].loc[:, 'mean']
+        X = np.vstack([x0, x1])
+
+        predicted = predict(X, statistic)
+        exprected_predictions = pd.Series([0, 1])
+        self.assertTrue(exprected_predictions.equals(predicted))
+    # todo test that predictions on titanic dataset don't cause any errors
+    def test_predict_with_titanic(self):
+        pass
 if __name__ == '__main__':
     unittest.main()

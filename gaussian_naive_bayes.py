@@ -63,7 +63,10 @@ def get_n_features_of_labels_statistic(labels_statistic: dict):
     return first_value.shape[0]
 
 
-def predict_likelihood_for_2d(X: np.array, labels_statistic: dict):
+def predict_likelihood(X: np.array, labels_statistic: dict):
+    if len(X.shape) == 1:
+        # create column-matrix from
+        X = X.reshape(1, -1)
     likelihood_dfs_list = []
     for x_row in X:
         likelihood = predict_likelihood_for_1d(x_row, labels_statistic)
@@ -74,14 +77,12 @@ def predict_likelihood_for_2d(X: np.array, labels_statistic: dict):
     return pd.concat(likelihood_dfs_list, ignore_index=True)
 
 
-def predict_labels_from_likelyhoods(likelyhoods):
-    return likelyhoods.idxmax(axis=1)
+def predict_labels_from_likelihoods(likelihoods):
+    return likelihoods.idxmax(axis=1)
 
 
 def predict(X, labels_statistic):
-    if len(X.shape) == 1:
-        X = X.reshape(1, -1)
-    likelyhoods = predict_likelihood_for_2d(X, labels_statistic)
-    return predict_labels_from_likelyhoods(likelyhoods)
+    likelyhoods = predict_likelihood(X, labels_statistic)
+    return predict_labels_from_likelihoods(likelyhoods)
 
 
